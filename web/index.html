@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+
+  <!-- Google Identity Services (GIS) Client ID & Shopee-style Account Chooser Popup -->
+  <meta name="google-signin-client_id" content="639331646818-7giedfmjuotg4momqaad9atajbvj0r7r.apps.googleusercontent.com">
+  <script>
+    window.triggerShopeeStyleGooglePopup = function(clientId) {
+      return new Promise(function(resolve) {
+        try {
+          var width = 480;
+          var height = 650;
+          var left = Math.max(0, Math.round((window.screen.width - width) / 2));
+          var top = Math.max(0, Math.round((window.screen.height - height) / 2));
+          var features = 'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,status=no,toolbar=no,menubar=no,location=yes';
+
+          var popup = window.open('about:blank', 'google_account_chooser_popup', features);
+          if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+            // Nếu trình duyệt chặn popup, fallback sang hộp thoại Choose an account ngay trong app
+            resolve(JSON.stringify({ needsFallback: true, errorMessage: 'popup_blocked' }));
+            return;
+          }
+
+          var settled = false;
+          var finish = function(payload) {
+            if (!settled) {
+              settled = true;
+              clearInterval(closeTimer);
+              window.removeEventListener('message', onPopupMessage);
+              resolve(JSON.stringify(payload));
+            }
+          };
+
+          // Đọc danh sách tài khoản Google đã lưu trên trình duyệt này
+          var savedAccounts = [];
+          try {
+            var rawSaved = localStorage.getItem('google_chooser_saved_accounts_v1');
+            if (rawSaved) {
+              savedAccounts = JSON.parse(rawSaved) || [];
+            }
+          } catch (_) {}
+
+          var onPopupMessage = function(event) {
+            if (!event || !event.data || event.data.source !== 'GOOGLE_CHOOSER_POPUP') return;
+            var data = event.data;
+            if (data.type === 'ACCOUNT_SELECTED') {
+              try {
+                // Lưu tài khoản vào bộ nhớ trình duyệt để lần sau hiển thị sẵn trong Choose an account
+                var emailLower = String(data.email || '').trim().toLowerCase();
+                var dispName = String(data.displayName || '').trim() || emailLower.split('@')[0];
+                var googleId = 'google_' + emailLower.replace(/[^a-z0-9]/g, '_');
+                var updatedList = [{ email: emailLower, displayName: dispName, id: googleId }];
+                for (var i = 0; i < savedAccounts.length; i++) {
+                  if (savedAccounts[i].email !== emailLower && updatedList.length < 5) {
+                    updatedList.push(savedAccounts[i]);
+                  }
+                }
+                localStorage.setItem('google_chooser_saved_accounts_v1', JSON.stringify(updatedList));
+              } catch (_) {}
+
+              try { popup.close(); } catch (_) {}
+              finish({
+                isSuccess: true,
+                email: data.email,
+                displayName: data.displayName,
+                id: 'google_' + String(data.email || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_')
+              });
+            } else if (data.type === 'CANCELLED') {
+              try { popup.close(); } catch (_) {}
+              finish({ isCancelled: true });
+            }
+          };
+
+          window.addEventListener('message', onPopupMessage);
+
+          var closeTimer = setInterval(function() {
+            if (popup.closed) {
+              finish({ isCancelled: true });
+            }
+          }, 300);
+
+          var initialAccountsJson = JSON.stringify(savedAccounts).replace(/</g, '\\u003c');
+
+          var htmlContent = '<!DOCTYPE html>' +
+            '<html lang="vi">' +
+            '<head>' +
+            '<meta charset="utf-8">' +
+            '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+            '<title>Sign in - Google Accounts</title>' +
+            '<style>' +
+            '* { box-sizing: border-box; font-family: "Google Sans", Roboto, Arial, sans-serif; }' +
+            'body { margin: 0; background: #f8fafc; color: #202124; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }' +
+            '.card { background: #fff; width: 100%; max-width: 410px; border-radius: 24px; border: 1px solid #dadce0; box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden; }' +
+            '.card-header { display: flex; align-items: center; padding: 14px 24px; border-bottom: 1px solid #e0e0e0; font-size: 14px; color: #3c4043; font-weight: 500; }' +
+            '.card-header svg { width: 18px; height: 18px; margin-right: 10px; flex-shrink: 0; }' +
+            '.card-body { padding: 28px 32px 30px; }' +
+            '.app-badge { width: 44px; height: 44px; border-radius: 10px; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; margin-bottom: 18px; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }' +
+            'h1 { font-size: 24px; font-weight: 400; margin: 0 0 6px; color: #202124; }' +
+            '.subtitle { font-size: 15px; color: #202124; margin-bottom: 24px; }' +
+            '.subtitle span { color: #1a73e8; font-weight: 500; }' +
+            '.account-list { margin: 0 -32px; }' +
+            '.account-item { display: flex; align-items: center; padding: 12px 32px; cursor: pointer; border-bottom: 1px solid #e8eaed; transition: background 0.15s; }' +
+            '.account-item:first-child { border-top: 1px solid #e8eaed; }' +
+            '.account-item:hover { background: #f8f9fa; }' +
+            '.avatar { width: 34px; height: 34px; border-radius: 50%; background: #1a73e8; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; margin-right: 14px; flex-shrink: 0; }' +
+            '.avatar-icon { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 14px; color: #5f6368; flex-shrink: 0; }' +
+            '.acc-info { flex: 1; min-width: 0; }' +
+            '.acc-name { font-size: 14px; font-weight: 500; color: #3c4043; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+            '.acc-email { font-size: 12.5px; color: #5f6368; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }' +
+            '.form-box { margin-top: 16px; display: none; }' +
+            '.form-box.active { display: block; }' +
+            '.field { margin-bottom: 14px; }' +
+            '.field label { display: block; font-size: 12px; font-weight: 500; color: #3c4043; margin-bottom: 5px; }' +
+            '.field input { width: 100%; padding: 11px 12px; border: 1px solid #dadce0; border-radius: 6px; font-size: 14px; color: #202124; outline: none; transition: border 0.15s; }' +
+            '.field input:focus { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }' +
+            '.err-msg { color: #d93025; font-size: 12px; margin-bottom: 10px; display: none; }' +
+            '.btn-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }' +
+            '.btn { padding: 9px 22px; border-radius: 18px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; }' +
+            '.btn-primary { background: #1a73e8; color: #fff; }' +
+            '.btn-primary:hover { background: #1557b0; }' +
+            '.btn-text { background: transparent; color: #1a73e8; }' +
+            '.btn-text:hover { background: #f1f3f4; }' +
+            '.policy { font-size: 12px; color: #5f6368; line-height: 1.5; margin-top: 24px; }' +
+            '.policy a { color: #1a73e8; text-decoration: none; font-weight: 500; }' +
+            '.footer { width: 100%; max-width: 410px; display: flex; justify-content: space-between; align-items: center; padding: 14px 8px 0; font-size: 12px; color: #5f6368; }' +
+            '.footer-links span { margin-left: 16px; cursor: pointer; }' +
+            '</style>' +
+            '</head>' +
+            '<body>' +
+            '<div class="card">' +
+            '  <div class="card-header">' +
+            '    <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>' +
+            '    Sign in with Google' +
+            '  </div>' +
+            '  <div class="card-body">' +
+            '    <div class="app-badge">+</div>' +
+            '    <h1 id="page-title">Choose an account</h1>' +
+            '    <div class="subtitle">to continue to <span>Trợ lý Cứu hộ AI</span></div>' +
+            '    <div class="account-list" id="account-list"></div>' +
+            '    <div class="form-box" id="add-form">' +
+            '      <div class="err-msg" id="err-msg">Vui lòng nhập địa chỉ Gmail hợp lệ (ví dụ: tenban@gmail.com).</div>' +
+            '      <div class="field">' +
+            '        <label>Email hoặc Gmail</label>' +
+            '        <input type="email" id="email-input" placeholder="tenban@gmail.com" autocomplete="email" />' +
+            '      </div>' +
+            '      <div class="field">' +
+            '        <label>Tên hiển thị Google (Tùy chọn)</label>' +
+            '        <input type="text" id="name-input" placeholder="Nguyễn Văn A" autocomplete="name" />' +
+            '      </div>' +
+            '      <div class="btn-row">' +
+            '        <button type="button" class="btn btn-text" id="cancel-btn">Hủy</button>' +
+            '        <button type="button" class="btn btn-primary" id="submit-btn">Tiếp theo</button>' +
+            '      </div>' +
+            '    </div>' +
+            '    <div class="policy">' +
+            '      Before using this app, you can review Trợ lý Cứu hộ AI\u2019s <a href="#">Privacy Policy</a> and <a href="#">Terms of Service</a>.' +
+            '    </div>' +
+            '  </div>' +
+            '</div>' +
+            '<div class="footer">' +
+            '  <div>Tiếng Việt / English (United States)</div>' +
+            '  <div class="footer-links"><span>Help</span><span>Privacy</span><span>Terms</span></div>' +
+            '</div>' +
+            '<script>' +
+            'var accounts = ' + initialAccountsJson + ';' +
+            'var listEl = document.getElementById("account-list");' +
+            'var formEl = document.getElementById("add-form");' +
+            'var emailInput = document.getElementById("email-input");' +
+            'var nameInput = document.getElementById("name-input");' +
+            'var errEl = document.getElementById("err-msg");' +
+            'function selectAccount(email, displayName) {' +
+            '  if (window.opener) {' +
+            '    window.opener.postMessage({ source: "GOOGLE_CHOOSER_POPUP", type: "ACCOUNT_SELECTED", email: email, displayName: displayName }, "*");' +
+            '  }' +
+            '}' +
+            'function renderList() {' +
+            '  listEl.innerHTML = "";' +
+            '  for (var i = 0; i < accounts.length; i++) {' +
+            '    (function(acc) {' +
+            '      var row = document.createElement("div");' +
+            '      row.className = "account-item";' +
+            '      var initial = (acc.displayName || acc.email || "G").charAt(0).toUpperCase();' +
+            '      row.innerHTML = \'<div class="avatar">\' + initial + \'</div><div class="acc-info"><div class="acc-name">\' + acc.displayName + \'</div><div class="acc-email">\' + acc.email + \'</div></div>\';' +
+            '      row.onclick = function() { selectAccount(acc.email, acc.displayName); };' +
+            '      listEl.appendChild(row);' +
+            '    })(accounts[i]);' +
+            '  }' +
+            '  var anotherRow = document.createElement("div");' +
+            '  anotherRow.className = "account-item";' +
+            '  anotherRow.innerHTML = \'<div class="avatar-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div><div class="acc-info"><div class="acc-name">Use another account</div></div>\';' +
+            '  anotherRow.onclick = function() {' +
+            '    formEl.classList.add("active");' +
+            '    emailInput.focus();' +
+            '  };' +
+            '  listEl.appendChild(anotherRow);' +
+            '  if (accounts.length === 0) {' +
+            '    formEl.classList.add("active");' +
+            '    setTimeout(function() { emailInput.focus(); }, 100);' +
+            '  }' +
+            '}' +
+            'document.getElementById("submit-btn").onclick = function() {' +
+            '  var mail = (emailInput.value || "").trim().toLowerCase();' +
+            '  if (!mail || mail.indexOf("@") === -1 || mail.indexOf(".") === -1) {' +
+            '    errEl.style.display = "block";' +
+            '    return;' +
+            '  }' +
+            '  var disp = (nameInput.value || "").trim() || mail.split("@")[0];' +
+            '  selectAccount(mail, disp);' +
+            '};' +
+            'emailInput.onkeydown = function(e) { if (e.key === "Enter") document.getElementById("submit-btn").click(); };' +
+            'nameInput.onkeydown = function(e) { if (e.key === "Enter") document.getElementById("submit-btn").click(); };' +
+            'document.getElementById("cancel-btn").onclick = function() {' +
+            '  if (accounts.length > 0) {' +
+            '    formEl.classList.remove("active");' +
+            '    errEl.style.display = "none";' +
+            '  } else {' +
+            '    if (window.opener) window.opener.postMessage({ source: "GOOGLE_CHOOSER_POPUP", type: "CANCELLED" }, "*");' +
+            '    window.close();' +
+            '  }' +
+            '};' +
+            'renderList();' +
+            '<\/script>' +
+            '</body>' +
+            '</html>';
+
+          popup.document.open();
+          popup.document.write(htmlContent);
+          popup.document.close();
+        } catch (e) {
+          resolve(JSON.stringify({ needsFallback: true, errorMessage: String(e) }));
+        }
+      });
+    };
+  </script>
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="do_an_cntt_11">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>do_an_cntt_11</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

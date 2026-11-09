@@ -1,0 +1,9 @@
+# Install PyTorch with CUDA separately using the official command for your server.
+transformers==5.18.0
+accelerate==1.15.0
+bitsandbytes==0.50.2
+huggingface-hub==1.33.0
+safetensors==0.8.0
+Pillow==12.3.0
+sentencepiece==0.2.2
+ultralytics==8.4.197

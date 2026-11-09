@@ -1,0 +1,44 @@
+{
+  "entries": [
+    {
+      "id": "app-usage",
+      "approved": true,
+      "title": "Cách sử dụng bản thử nghiệm",
+      "aliases": [
+        "cách dùng",
+        "cách dùng app",
+        "hướng dẫn sử dụng"
+      ],
+      "answer": "Nhập câu hỏi ngắn rồi nhấn Gửi. Chế độ Thử model cho phép hỏi MedGemma; chế độ Theo kho kiến thức chỉ trả lời khi có nội dung đã duyệt phù hợp. Nút Nạp model giúp chuẩn bị model trước khi hỏi. Lịch sử chỉ nằm trong trang đang mở, không lưu xuống ổ đĩa.",
+      "source": "Hướng dẫn của bản thử nghiệm cục bộ",
+      "kind": "application_help"
+    },
+    {
+      "id": "app-limits",
+      "approved": true,
+      "title": "Giới hạn sử dụng",
+      "aliases": [
+        "có hết token không",
+        "có bị hết token không",
+        "có giới hạn lượt hỏi không"
+      ],
+      "answer": "Không có hạn mức lượt hỏi hoặc token theo ngày khi chạy model cục bộ. Mỗi yêu cầu vẫn có giới hạn độ dài để phù hợp bộ nhớ máy. Khi model đã nạp, các câu hỏi tiếp theo không cần nạp lại. Câu hỏi lặp lại đúng ngữ cảnh có thể được trả từ bộ nhớ tạm.",
+      "source": "Cấu hình của bản thử nghiệm cục bộ",
+      "kind": "application_help"
+    },
+    {
+      "id": "graze-reference",
+      "approved": false,
+      "title": "Tham khảo về vết cắt và trầy xước — chờ duyệt",
+      "aliases": [
+        "nếu bị xước tay thì nên làm gì",
+        "nếu bị xướt tay thì nên làm gì",
+        "cách xử lý vết trầy xước nhỏ"
+      ],
+      "answer": "Với vết trầy nhỏ đã ngừng chảy máu: rửa tay, rửa vết thương bằng nước sạch, làm sạch da xung quanh bằng xà phòng và nước, rồi che bằng băng sạch. Cần hỗ trợ y tế nếu chảy máu không cầm, vết thương sâu hoặc lớn, có dị vật, mất cảm giác hay khó cử động; cần được khám nếu sưng đỏ đau tăng hoặc có mủ.",
+      "source": "https://www.nhs.uk/conditions/cuts-and-grazes/",
+      "review_note": "Bản diễn giải tham khảo từ NHS; chưa được người phụ trách chuyên môn duyệt cho ứng dụng. Không dùng làm câu trả lời tự động cho đến khi hoàn tất duyệt.",
+      "kind": "clinical"
+    }
+  ]
+}
