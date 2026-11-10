@@ -1,0 +1,22 @@
+{
+  "builds": [
+    {
+      "src": "backend/main.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "lib/AI_Model/main.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/backend/(.*)",
+      "dest": "backend/main.py"
+    },
+    {
+      "src": "/api/ai/(.*)",
+      "dest": "lib/AI_Model/main.py"
+    }
+  ]
+}
