@@ -7,3 +7,6 @@ safetensors==0.8.0
 Pillow==12.3.0
 sentencepiece==0.2.2
 ultralytics==8.4.197
+fastapi
+uvicorn
+pydantic
